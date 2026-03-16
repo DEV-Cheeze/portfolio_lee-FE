@@ -1,0 +1,479 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.98 0.005 240);
+  --toc-highlight-bg-strong: color-mix(in oklab, var(--primary) 36%, white 64%);
+  --toc-highlight-bg-soft: color-mix(in oklab, var(--primary) 22%, white 78%);
+  --toc-highlight-ring: transparent;
+  --foreground: oklch(0.18 0.02 240);
+  --card: oklch(0.97 0.005 240);
+  --card-foreground: oklch(0.18 0.02 240);
+  --popover: oklch(0.98 0.005 240 / 0.95);
+  --popover-foreground: oklch(0.18 0.02 240);
+  --primary: oklch(0.5 0.14 240);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.94 0.01 240);
+  --secondary-foreground: oklch(0.3 0.02 240);
+  --muted: oklch(0.95 0.008 240);
+  --muted-foreground: oklch(0.45 0.02 240);
+  --accent: oklch(0.55 0.12 240);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.91 0.008 240);
+  --input: oklch(0.94 0.008 240);
+  --ring: oklch(0.5 0.14 240);
+  --chart-1: oklch(0.5 0.14 240);
+  --chart-2: oklch(0.55 0.12 200);
+  --chart-3: oklch(0.45 0.1 260);
+  --chart-4: oklch(0.6 0.14 220);
+  --chart-5: oklch(0.65 0.1 180);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.18 0.02 240);
+  --sidebar-primary: oklch(0.5 0.14 240);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.94 0.01 240);
+  --sidebar-accent-foreground: oklch(0.3 0.02 240);
+  --sidebar-border: oklch(0.91 0.008 240);
+  --sidebar-ring: oklch(0.5 0.14 240);
+  --glass: oklch(0.98 0.005 240 / 0.6);
+  --glass-border: oklch(0.91 0.008 240 / 0.5);
+}
+
+.dark {
+  --background: oklch(0.13 0.015 240);
+  --toc-highlight-bg-strong: color-mix(in oklab, var(--primary) 48%, black 52%);
+  --toc-highlight-bg-soft: color-mix(in oklab, var(--primary) 32%, black 68%);
+  --toc-highlight-ring: color-mix(in oklab, var(--primary) 28%, transparent);
+  --foreground: oklch(0.9 0.01 240);
+  --card: oklch(0.17 0.015 240);
+  --card-foreground: oklch(0.9 0.01 240);
+  --popover: oklch(0.17 0.015 240 / 0.95);
+  --popover-foreground: oklch(0.9 0.01 240);
+  --primary: oklch(0.65 0.15 240);
+  --primary-foreground: oklch(0.13 0.015 240);
+  --secondary: oklch(0.22 0.015 240);
+  --secondary-foreground: oklch(0.9 0.01 240);
+  --muted: oklch(0.2 0.012 240);
+  --muted-foreground: oklch(0.6 0.02 240);
+  --accent: oklch(0.55 0.12 240);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.5 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.25 0.015 240);
+  --input: oklch(0.2 0.012 240);
+  --ring: oklch(0.65 0.15 240);
+  --chart-1: oklch(0.65 0.15 240);
+  --chart-2: oklch(0.6 0.12 200);
+  --chart-3: oklch(0.55 0.1 260);
+  --chart-4: oklch(0.7 0.14 220);
+  --chart-5: oklch(0.65 0.1 180);
+  --sidebar: oklch(0.15 0.015 240);
+  --sidebar-foreground: oklch(0.9 0.01 240);
+  --sidebar-primary: oklch(0.65 0.15 240);
+  --sidebar-primary-foreground: oklch(0.13 0.015 240);
+  --sidebar-accent: oklch(0.22 0.015 240);
+  --sidebar-accent-foreground: oklch(0.9 0.01 240);
+  --sidebar-border: oklch(0.25 0.015 240);
+  --sidebar-ring: oklch(0.65 0.15 240);
+  --glass: oklch(0.17 0.015 240 / 0.6);
+  --glass-border: oklch(0.25 0.015 240 / 0.5);
+}
+
+@theme inline {
+  --font-sans: 'Inter', 'Inter Fallback', sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-glass: var(--glass);
+  --color-glass-border: var(--glass-border);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/*
+ * Code block syntax highlighting (GitHub Dark theme)
+ * Scoped under .code-block-pre so it always uses dark-bg colors
+ * regardless of the page's light/dark theme.
+ */
+.code-block-pre code {
+  background: transparent !important;
+}
+.code-block-pre .hljs {
+  color: #c9d1d9;
+  background: transparent;
+}
+.code-block-pre .hljs-doctag,
+.code-block-pre .hljs-keyword,
+.code-block-pre .hljs-meta .hljs-keyword,
+.code-block-pre .hljs-template-tag,
+.code-block-pre .hljs-template-variable,
+.code-block-pre .hljs-type,
+.code-block-pre .hljs-variable.language_ {
+  color: #ff7b72;
+}
+.code-block-pre .hljs-title,
+.code-block-pre .hljs-title.class_,
+.code-block-pre .hljs-title.class_.inherited__,
+.code-block-pre .hljs-title.function_ {
+  color: #d2a8ff;
+}
+.code-block-pre .hljs-attr,
+.code-block-pre .hljs-attribute,
+.code-block-pre .hljs-literal,
+.code-block-pre .hljs-meta,
+.code-block-pre .hljs-number,
+.code-block-pre .hljs-operator,
+.code-block-pre .hljs-selector-attr,
+.code-block-pre .hljs-selector-class,
+.code-block-pre .hljs-selector-id,
+.code-block-pre .hljs-variable {
+  color: #79c0ff;
+}
+.code-block-pre .hljs-meta .hljs-string,
+.code-block-pre .hljs-regexp,
+.code-block-pre .hljs-string {
+  color: #a5d6ff;
+}
+.code-block-pre .hljs-built_in,
+.code-block-pre .hljs-symbol {
+  color: #ffa657;
+}
+.code-block-pre .hljs-code,
+.code-block-pre .hljs-comment,
+.code-block-pre .hljs-formula {
+  color: #8b949e;
+}
+.code-block-pre .hljs-name,
+.code-block-pre .hljs-quote,
+.code-block-pre .hljs-selector-pseudo,
+.code-block-pre .hljs-selector-tag {
+  color: #7ee787;
+}
+.code-block-pre .hljs-subst {
+  color: #c9d1d9;
+}
+.code-block-pre .hljs-section {
+  color: #1f6feb;
+  font-weight: 700;
+}
+.code-block-pre .hljs-bullet {
+  color: #f2cc60;
+}
+.code-block-pre .hljs-emphasis {
+  color: #c9d1d9;
+  font-style: italic;
+}
+.code-block-pre .hljs-strong {
+  color: #c9d1d9;
+  font-weight: 700;
+}
+.code-block-pre .hljs-addition {
+  color: #aff5b4;
+  background-color: #033a16;
+}
+.code-block-pre .hljs-deletion {
+  color: #ffdcd7;
+  background-color: #67060c;
+}
+
+/* 
+ * Custom Scrollbar Utilities 
+ * Applied via .custom-scrollbar class
+ */
+@layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+    display: block !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent !important;
+    margin: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5) !important;
+    border-radius: 20px !important;
+    border: 2px solid transparent !important;
+    background-clip: content-box !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.8) !important;
+  }
+
+  /* Force scrollbar visibility for debugging if needed */
+  .custom-scrollbar::-webkit-scrollbar-thumb:vertical {
+    min-height: 30px;
+  }
+
+  /* Notification modal scrollbar - styled to match the dark/light theme */
+  .notification-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+
+  .notification-scrollbar::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+    display: block !important;
+  }
+  
+  .notification-scrollbar::-webkit-scrollbar-track {
+    background: transparent !important;
+    margin: 4px;
+  }
+  
+  .notification-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border) !important;
+    border-radius: 20px !important;
+    border: none !important;
+  }
+  
+  .notification-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground) !important;
+  }
+
+  /* Table of Contents scrollbar */
+  .toc-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .toc-scrollbar::-webkit-scrollbar {
+    width: 4px !important;
+  }
+  
+  .toc-scrollbar::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+  
+  .toc-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border) !important;
+    border-radius: 20px !important;
+  }
+  
+  .toc-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground) !important;
+  }
+}
+
+@keyframes toast-in {
+  0% {
+    transform: translate3d(56px, 0, 0) scale(0.96);
+    opacity: 0;
+  }
+  65% {
+    transform: translate3d(-6px, 0, 0) scale(1.01);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-out {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translate3d(10px, 0, 0) scale(0.995);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(52px, 0, 0) scale(0.98);
+    opacity: 0;
+  }
+}
+
+@keyframes toast-progress {
+  0% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+.toast-root {
+  will-change: transform, opacity;
+  contain: layout style;
+}
+
+.toast-root[data-state="open"] {
+  animation: toast-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toast-root[data-state="closed"] {
+  animation: toast-out 360ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.toast-root[data-swipe="end"] {
+  animation: toast-out 240ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.toast-progress {
+  animation-name: toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  transform-origin: left;
+  will-change: transform;
+}
+
+
+.like-heart-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.like-heart-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  opacity: 0;
+  transform: scale(0.45);
+  pointer-events: none;
+}
+
+.like-heart-particles {
+  position: absolute;
+  inset: -12px;
+  pointer-events: none;
+}
+
+.like-heart-particles i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+}
+
+.like-heart-particles i:nth-child(1) { --tx: 0px; --ty: -15px; }
+.like-heart-particles i:nth-child(2) { --tx: 12px; --ty: -8px; }
+.like-heart-particles i:nth-child(3) { --tx: 12px; --ty: 8px; }
+.like-heart-particles i:nth-child(4) { --tx: 0px; --ty: 15px; }
+.like-heart-particles i:nth-child(5) { --tx: -12px; --ty: 8px; }
+.like-heart-particles i:nth-child(6) { --tx: -12px; --ty: -8px; }
+
+.like-heart-shell.is-bursting .like-heart-ring {
+  animation: like-heart-ring 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.like-heart-shell.is-bursting .like-heart-particles i {
+  animation: like-heart-particle 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes like-heart-ring {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.45);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes like-heart-particle {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1);
+  }
+}
+
+
+.toc-heading-highlight-target {
+  position: relative;
+  display: block;
+  width: 100%;
+  border-radius: 0;
+  padding: 0.12em 0.9rem 0.12em 0.4rem;
+  margin-left: -0.4rem;
+  transition: background-color 220ms ease;
+}
+
+.toc-heading-highlight {
+  animation: toc-heading-highlight-pulse 1.8s linear;
+}
+
+@keyframes toc-heading-highlight-pulse {
+  0% {
+    background-color: transparent;
+  }
+  10% {
+    background-color: var(--toc-highlight-bg-strong);
+  }
+  56% {
+    background-color: var(--toc-highlight-bg-strong);
+  }
+  100% {
+    background-color: transparent;
+  }
+}

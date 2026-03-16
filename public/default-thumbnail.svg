@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225">
+  <defs>
+    <style>
+      @media (prefers-color-scheme: light) {
+        .bg { fill: #f1f5f9; }
+        .shape1 { fill: #cbd5e1; }
+        .shape2 { fill: #e2e8f0; }
+        .icon { fill: #94a3b8; }
+      }
+      @media (prefers-color-scheme: dark) {
+        .bg { fill: #1e293b; }
+        .shape1 { fill: #334155; }
+        .shape2 { fill: #475569; }
+        .icon { fill: #64748b; }
+      }
+    </style>
+  </defs>
+  <rect class="bg" width="400" height="225"/>
+  <circle class="shape1" cx="320" cy="60" r="80" opacity="0.5"/>
+  <circle class="shape2" cx="80" cy="180" r="60" opacity="0.4"/>
+  <g transform="translate(170, 82.5)">
+    <rect class="icon" x="0" y="15" width="60" height="45" rx="4"/>
+    <circle class="icon" cx="18" cy="32" r="8"/>
+    <path class="icon" d="M8 52l12-10 8 6 16-14 8 8v10H8z" opacity="0.7"/>
+  </g>
+</svg>
