@@ -107,12 +107,12 @@ export function InfoCards() {
           </div>
           <div className="space-y-3">
             <a
-              href="mailto:ckdwnd9999@email.com"
+              href="mailto:ckdwnd9999@gmail.com"
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 transition-colors group/link"
             >
               <Mail className="w-4 h-4 text-muted-foreground group-hover/link:text-primary transition-colors" />
               <span className="text-sm text-muted-foreground group-hover/link:text-foreground transition-colors">
-                ckdwnd9999@email.com
+                ckdwnd9999@gmail.com
               </span>
             </a>
             <a

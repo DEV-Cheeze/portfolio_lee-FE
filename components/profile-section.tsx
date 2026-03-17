@@ -102,7 +102,7 @@ export function ProfileSection() {
             }`}
           >
             <a
-              href="mailto:ckdwnd9999@email.com"
+              href="mailto:ckdwnd9999@gmail.com"
               className="group flex items-center gap-3 text-foreground/70 hover:text-primary transition-all duration-300"
             >
               <div className="p-2 rounded-full border border-border group-hover:border-primary/50 group-hover:bg-primary/5 transition-all">
