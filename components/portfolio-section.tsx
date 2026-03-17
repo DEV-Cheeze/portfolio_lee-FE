@@ -32,7 +32,7 @@ const projects: Project[] = [
     githubUrl: "https://github.com/DEV-Cheeze/portfolio_lee",
     liveUrl: "https://lee-devlog.kro.kr",
     period: "2026.03 - now",
-    role: "FullStack 개발 (백엔드 중심), 배포 및 운영",
+    role: "개발 인원: 1명, FullStack 개발 (백엔드 중심), 배포 및 운영",
     responsibilities: [
       "Next.js를 활용한 프론트엔드 개발 및 UI/UX 개선 (AI 사용)",
       "Spring Boot 기반 RESTful API 설계 및 구현",
@@ -63,7 +63,7 @@ const projects: Project[] = [
     githubUrl: "https://github.com/prgrms-web-devcourse-final-project/WEB7_9_200OK_BE",
     liveUrl: "https://wind-fall.store/",
     period: "2025.12 - 2026.01",
-    role: "백엔드 개발 (마이페이지), CI/CD 구축",
+    role: "개발 인원: 2명, 백엔드 개발 (마이페이지), CI/CD 구축",
     responsibilities: [
       "마이페이지 API 설계 및 구현 (주문 내역, 찜 목록, 리뷰 관리 등)",
       "CI/CD 파이프라인 구축 (Github Actions, AWS CodeDeploy, Blue-Green 배포 전략 적용)",
