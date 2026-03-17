@@ -127,7 +127,7 @@ export function InfoCards() {
               </span>
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/dev-cheeze/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 transition-colors group/link"

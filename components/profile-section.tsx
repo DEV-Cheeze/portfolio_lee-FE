@@ -124,7 +124,7 @@ export function ProfileSection() {
                 <Github className="w-5 h-5" />
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/dev-cheeze/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors p-1"
