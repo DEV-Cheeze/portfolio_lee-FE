@@ -134,7 +134,7 @@ export function InfoCards() {
             >
               <Linkedin className="w-4 h-4 text-muted-foreground group-hover/link:text-primary transition-colors" />
               <span className="text-sm text-muted-foreground group-hover/link:text-foreground transition-colors">
-                linkedin.com/in/username
+                linkedin.com/in/dev-cheeze
               </span>
             </a>
           </div>
