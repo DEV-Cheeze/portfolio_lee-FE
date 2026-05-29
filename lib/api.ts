@@ -11,7 +11,7 @@ import {
   isAccessTokenExpired,
 } from './auth-client'
 
-const API_BASE_URL = 'https://api.lee-devlog.kro.kr/api/v1'
+export const API_BASE_URL = 'http://localhost:8080/api/v1'
 
 
 const articleDetailInFlight = new Map<string, Promise<any>>()
@@ -438,7 +438,7 @@ export async function logoutRequest() {
 
 
 export async function likeArticle(articleId: string | number) {
-  const response = await apiFetch(`${API_BASE_URL}/like/${articleId}`, {
+  const response = await apiFetch(`${API_BASE_URL}/likes/${articleId}`, {
     method: 'POST',
   })
 
@@ -452,7 +452,7 @@ export async function likeArticle(articleId: string | number) {
 }
 
 export async function unlikeArticle(articleId: string | number) {
-  const response = await apiFetch(`${API_BASE_URL}/like/${articleId}`, {
+  const response = await apiFetch(`${API_BASE_URL}/likes/${articleId}`, {
     method: 'DELETE',
   })
 

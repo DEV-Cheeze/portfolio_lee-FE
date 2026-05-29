@@ -274,7 +274,7 @@ export function SkillsSection() {
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
             <p className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Technical Stack</p>
-            <p className="text-sm text-muted-foreground">다양한 기술을 활용하여 높은 가치의 서비스를 창출합니다.</p>
+            <p className="text-sm text-muted-foreground">카테고리를 전환하면 해당 기술 스택만 보이도록 구성했습니다.</p>
           </div>
 
           <div className="inline-flex w-full items-center gap-2 rounded-full bg-foreground/[0.04] p-1.5 transition-colors dark:bg-white/[0.06] md:w-auto">
