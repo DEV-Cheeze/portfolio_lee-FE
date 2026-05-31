@@ -8,6 +8,7 @@ import {
   CalendarRange,
   ChevronLeft,
   ChevronRight,
+  CircleHelp,
   Clock3,
   Gauge,
   Heart,
@@ -46,6 +47,7 @@ import {
   warnLogs,
   type EndpointRow,
   type RangePreset,
+  type RankedPost,
   type TimePoint,
 } from "@/lib/admin-mock";
 
@@ -95,6 +97,11 @@ type VisitorFlowPoint = {
   rangeLabel?: string;
   extraAggregate?: boolean;
   additionalMessage?: string;
+};
+
+type TopPostPoint = RankedPost & {
+  id: string;
+  delta: number;
 };
 
 type ChartDotProps = {
@@ -535,8 +542,8 @@ function serializeDayStart(value: Date) {
 function buildSummaryParams(preset: RangePreset, startValue: string, endValue: string) {
   const params = new URLSearchParams();
   if (preset === "today") params.set("timeline", "today");
-  else if (preset === "week") params.set("timeline", "this_week");
-  else if (preset === "month") params.set("timeline", "this_month");
+  else if (preset === "week") params.set("timeline", "this-week");
+  else if (preset === "month") params.set("timeline", "this-month");
   else {
     const range = clampDateRange(startValue, endValue);
     if (!range) return null;
@@ -654,8 +661,74 @@ function readNullableNumber(source: unknown, keys: string[]) {
   return null;
 }
 
+function readString(source: unknown, keys: string[]) {
+  if (!source || typeof source !== "object") return null;
+  const record = source as Record<string, unknown>;
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim() !== "") return value;
+    if (typeof value === "number") return String(value);
+  }
+  return null;
+}
+
 function normalizeMeasuredValue(value: number | null) {
   return value === null || Number.isNaN(value) ? 0 : value;
+}
+
+function calculateDeltaPercent(current: number, delta: number) {
+  const previous = current - delta;
+  if (previous === 0) {
+    if (delta === 0) return 0;
+    return delta > 0 ? 100 : -100;
+  }
+  return Math.round((delta / previous) * 100);
+}
+
+function transformEngagementData(payload: unknown, preset: RangePreset, startValue: string, endValue: string): ChartTimePoint[] {
+  const root = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+  const commentSeries = root.comment ?? root.comments;
+  const likeSeries = root.like ?? root.likes;
+  const commentTimeStamps = commentSeries && typeof commentSeries === "object" ? ((commentSeries as Record<string, unknown>).timeStamps ?? (commentSeries as Record<string, unknown>).timestamps ?? commentSeries) : {};
+  const likeTimeStamps = likeSeries && typeof likeSeries === "object" ? ((likeSeries as Record<string, unknown>).timeStamps ?? (likeSeries as Record<string, unknown>).timestamps ?? likeSeries) : {};
+  const timestamps = Array.from(new Set([...Object.keys(commentTimeStamps as Record<string, unknown>), ...Object.keys(likeTimeStamps as Record<string, unknown>)]));
+
+  const entries = timestamps
+    .map((timestamp) => ({
+      timestamp,
+      date: parseApiDate(timestamp),
+      comments: normalizeMeasuredValue(readNullableNumber(commentTimeStamps, [timestamp])),
+      likes: normalizeMeasuredValue(readNullableNumber(likeTimeStamps, [timestamp])),
+    }))
+    .filter((entry) => !Number.isNaN(entry.date.getTime()))
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const displayEnd = endOfDisplayedRange(preset, startValue, endValue);
+  const filtered = entries.filter((entry) => entry.date.getTime() <= displayEnd.getTime() + 86399999);
+  const hourly = filtered.length > 1 && differenceInCalendarDays(filtered[0].date, filtered[1].date) === 0;
+
+  return filtered.map((entry, index) => {
+    const previous = filtered[index - 1];
+    const monthRange = preset === "month" ? buildMonthRangeLabel(entry.date, filtered[index + 1]?.date ?? null, displayEnd) : null;
+    return {
+      label: monthRange?.weekLabel ?? formatGraphTickLabel(entry.date, hourly),
+      visitors: 0,
+      views: 0,
+      comments: entry.comments,
+      likes: entry.likes,
+      previousVisitors: 0,
+      previousViews: 0,
+      previousComments: previous?.comments ?? entry.comments,
+      previousLikes: previous?.likes ?? entry.likes,
+      responseMs: 0,
+      previousResponseMs: 0,
+      prevRangeVisitors: 0,
+      prevRangeViews: 0,
+      prevRangeComments: previous?.comments ?? entry.comments,
+      prevRangeLikes: previous?.likes ?? entry.likes,
+      prevRangeResponseMs: 0,
+    };
+  });
 }
 
 function transformVisitorFlowData(payload: unknown, preset: RangePreset, startValue: string, endValue: string): VisitorFlowPoint[] {
@@ -715,6 +788,84 @@ function transformVisitorFlowData(payload: unknown, preset: RangePreset, startVa
       additionalMessage: monthRange?.extraAggregate ? "추가 집계" : undefined,
     };
   });
+}
+
+function isVisitorFlowPayload(payload: unknown) {
+  if (!payload || typeof payload !== "object") return false;
+  const root = payload as Record<string, unknown>;
+  return Boolean(root.view ?? root.views ?? root.visitor ?? root.visitors ?? root.timeStamps ?? root.timestamps);
+}
+
+function transformTopPostsData(payload: unknown): TopPostPoint[] {
+  const root = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+  const articles = Array.isArray(root.articles)
+    ? root.articles
+    : Array.isArray(root.content)
+    ? root.content
+    : Array.isArray(payload)
+    ? payload
+    : [];
+
+  return articles.slice(0, 10).map((item, index) => {
+    const record = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    const title = readString(record, ["title", "articleTitle", "postTitle", "name"]) ?? `Post ${index + 1}`;
+    const views = normalizeMeasuredValue(readNullableNumber(record, ["view_count", "viewCount", "view_cnt", "views", "view", "count"]));
+    const delta = normalizeMeasuredValue(readNullableNumber(record, ["delta", "viewDelta", "viewsDelta", "deltaCount"]));
+    return {
+      id: readString(record, ["id", "articleId", "postId"]) ?? `${title}-${index}`,
+      title,
+      views,
+      delta,
+      deltaPercent: calculateDeltaPercent(views, delta),
+      trend: delta > 0 ? "up" : delta < 0 ? "down" : "flat",
+    };
+  });
+}
+
+function formatDateLabel(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
+
+function resolveDisplayDateRange(preset: RangePreset, startValue: string, endValue: string) {
+  if (preset !== "custom") {
+    const range = resolvePresetDates(preset);
+    return {
+      start: new Date(`${range.start}T00:00:00`),
+      end: new Date(`${range.end}T00:00:00`),
+    };
+  }
+  const range = clampDateRange(startValue, endValue);
+  if (range) return range;
+  return {
+    start: new Date(`${startValue}T00:00:00`),
+    end: new Date(`${endValue}T00:00:00`),
+  };
+}
+
+function chartUnitLabel(preset: RangePreset, data: Array<{ label: string }>) {
+  if (preset === "today" || data.some((point) => point.label.includes(":"))) return "시간대";
+  if (preset === "month" || data.some((point) => point.label.includes("주차"))) return "주차";
+  return "일";
+}
+
+function buildTrendDescription(preset: RangePreset, startValue: string, endValue: string, data: Array<{ label: string }>) {
+  const range = resolveDisplayDateRange(preset, startValue, endValue);
+  const start = Number.isNaN(range.start.getTime()) ? startValue : formatDateLabel(range.start);
+  const end = Number.isNaN(range.end.getTime()) ? endValue : formatDateLabel(range.end);
+  return `${start} ~ ${end} ${chartUnitLabel(preset, data)}별 추이`;
+}
+
+function MonthAverageHelp() {
+  return (
+    <span className="group relative inline-flex">
+      <span className="flex h-5 w-5 items-center justify-center rounded-full border border-border/70 bg-background/70 text-muted-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary">
+        <CircleHelp className="h-3.5 w-3.5" />
+      </span>
+      <span className="pointer-events-none absolute left-1/2 top-7 z-10 w-64 -translate-x-1/2 rounded-2xl border border-border/70 bg-background/95 px-3 py-2 text-xs font-medium leading-relaxed text-foreground opacity-0 shadow-xl backdrop-blur-sm transition-opacity group-hover:opacity-100">
+        주차별 날짜 수가 일정하지 않아 변화량을 보기 쉽게 평균값으로 나누어 표시합니다.
+      </span>
+    </span>
+  );
 }
 
 function hashString(value: string) {
@@ -997,9 +1148,13 @@ export function AdminDashboard() {
   const [overviewSummaryApi, setOverviewSummaryApi] = useState<DashboardSummaryData>(OVERVIEW_SUMMARY_EMPTY);
   const [overviewGraphApi, setOverviewGraphApi] = useState<OverviewGraphPoint[]>([]);
   const [visitorFlowApi, setVisitorFlowApi] = useState<VisitorFlowPoint[]>([]);
+  const [engagementApi, setEngagementApi] = useState<ChartTimePoint[]>([]);
+  const [topPostsApi, setTopPostsApi] = useState<TopPostPoint[] | null>(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewGraphLoading, setOverviewGraphLoading] = useState(false);
   const [visitorFlowLoading, setVisitorFlowLoading] = useState(false);
+  const [engagementLoading, setEngagementLoading] = useState(false);
+  const [topPostsLoading, setTopPostsLoading] = useState(false);
 
   useEffect(() => {
     if (analyticsView !== "overview") return;
@@ -1064,11 +1219,19 @@ export function AdminDashboard() {
     if (!params) return;
 
     setVisitorFlowLoading(true);
-    fetch(`${API_BASE_URL}/dashboard/view?${params.toString()}`, { signal: controller.signal, credentials: "include" })
+    fetch(`${API_BASE_URL}/dashboard/view/detail?${params.toString()}`, { signal: controller.signal, credentials: "include" })
       .then(async (response) => {
-        if (!response.ok) throw new Error("visitor flow fetch failed");
-        const json = await response.json();
-        setVisitorFlowApi(transformVisitorFlowData(json?.data, rangePreset, dateStart, dateEnd));
+        if (response.ok) {
+          const json = await response.json();
+          if (isVisitorFlowPayload(json?.data)) return json?.data;
+        }
+        const fallbackResponse = await fetch(`${API_BASE_URL}/dashboard/view?${params.toString()}`, { signal: controller.signal, credentials: "include" });
+        if (!fallbackResponse.ok) throw new Error("visitor flow fetch failed");
+        const fallbackJson = await fallbackResponse.json();
+        return fallbackJson?.data;
+      })
+      .then((data) => {
+        setVisitorFlowApi(transformVisitorFlowData(data, rangePreset, dateStart, dateEnd));
       })
       .catch((error) => {
         if (error?.name === "AbortError") return;
@@ -1081,14 +1244,68 @@ export function AdminDashboard() {
     return () => controller.abort();
   }, [analyticsView, rangePreset, dateStart, dateEnd]);
 
+  useEffect(() => {
+    if (analyticsView !== "posts") return;
+    const controller = new AbortController();
+    const params = buildSummaryParams(rangePreset, dateStart, dateEnd);
+    if (!params) return;
+
+    setTopPostsLoading(true);
+    fetch(`${API_BASE_URL}/dashboard/view/detail?${params.toString()}`, { signal: controller.signal, credentials: "include" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("top posts fetch failed");
+        const json = await response.json();
+        setTopPostsApi(transformTopPostsData(json?.data));
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError") return;
+        setTopPostsApi(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setTopPostsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [analyticsView, rangePreset, dateStart, dateEnd]);
+
+  useEffect(() => {
+    if (analyticsView !== "engagement") return;
+    const controller = new AbortController();
+    const params = buildSummaryParams(rangePreset, dateStart, dateEnd);
+    if (!params) return;
+
+    setEngagementLoading(true);
+    fetch(`${API_BASE_URL}/dashboard/engagement?${params.toString()}`, { signal: controller.signal, credentials: "include" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("engagement fetch failed");
+        const json = await response.json();
+        setEngagementApi(transformEngagementData(json?.data, rangePreset, dateStart, dateEnd));
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError") return;
+        setEngagementApi([]);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setEngagementLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [analyticsView, rangePreset, dateStart, dateEnd]);
+
   const currentBundle = useMemo(() => {
     if (rangePreset === "custom") return buildCustomBundle(dateStart, dateEnd);
     return analyticsByRange[rangePreset];
   }, [rangePreset, dateStart, dateEnd]);
 
   const analyticsChartData = useMemo(() => buildChartHistory(currentBundle.history, currentBundle.summary.avgResponseMs), [currentBundle.history, currentBundle.summary.avgResponseMs]);
+  const engagementChartData = engagementApi.length > 0 ? engagementApi : analyticsChartData;
   const analyticsTotals = useMemo(() => summarizeHistory(currentBundle.history), [currentBundle.history]);
   const summary = currentBundle.summary;
+  const topPosts = topPostsApi ?? currentBundle.topPosts.map((post, index) => ({
+    id: `${post.title}-${index}`,
+    ...post,
+    delta: post.deltaPercent,
+  }));
 
   const filteredMembers = useMemo(() => {
     const q = searchMember.trim().toLowerCase();
@@ -1117,6 +1334,8 @@ export function AdminDashboard() {
     const clipped = clampDateRange(dateStart, dateEnd);
     return formatRangeLabel(dateStart, clipped ? formatDateInputValue(clipped.end) : dateEnd, rangeLabels[rangePreset]);
   }, [dateStart, dateEnd, rangePreset]);
+  const overviewTrendDescription = useMemo(() => buildTrendDescription(rangePreset, dateStart, dateEnd, overviewGraphApi), [dateStart, dateEnd, overviewGraphApi, rangePreset]);
+  const engagementTrendDescription = useMemo(() => buildTrendDescription(rangePreset, dateStart, dateEnd, engagementChartData), [dateStart, dateEnd, engagementChartData, rangePreset]);
   const performanceRangeLabel = useMemo(() => {
     const label = performancePresetLabel(performancePreset, customMinutes);
     return `${label} 범위`;
@@ -1159,9 +1378,9 @@ export function AdminDashboard() {
   const selectedEndpointData = useMemo(() => (selectedEndpoint ? performanceEndpoints.find((item) => item.endpoint === selectedEndpoint.endpoint) ?? selectedEndpoint : null), [selectedEndpoint, performanceEndpoints]);
 
   const overviewMetricMeta: Record<OverviewMetric, { label: string; color: string; unit: string; summaryKey: DashboardMetricKey }> = {
-    visitors: { label: "방문자", color: COLORS.visitors, unit: "명", summaryKey: "visitors" },
-    comments: { label: "댓글", color: COLORS.comments, unit: "건", summaryKey: "comments" },
-    likes: { label: "좋아요", color: COLORS.likes, unit: "건", summaryKey: "likes" },
+    visitors: { label: "평균 방문자", color: COLORS.visitors, unit: "명", summaryKey: "visitors" },
+    comments: { label: "평균 댓글", color: COLORS.comments, unit: "건", summaryKey: "comments" },
+    likes: { label: "평균 좋아요", color: COLORS.likes, unit: "건", summaryKey: "likes" },
     responseMs: { label: "평균 응답시간", color: COLORS.response, unit: "ms", summaryKey: "responseMs" },
   };
 
@@ -1210,6 +1429,24 @@ export function AdminDashboard() {
         @keyframes overviewLineDraw {
           from { stroke-dashoffset: 1; }
           to { stroke-dashoffset: 0; }
+        }
+        .engagement-bar-chart .recharts-bar-rectangle {
+          transform-box: fill-box;
+          transform-origin: center bottom;
+          animation: engagementBarRise 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .engagement-bar-chart .recharts-bar:nth-of-type(2) .recharts-bar-rectangle {
+          animation-delay: 0.08s;
+        }
+        @keyframes engagementBarRise {
+          from {
+            transform: scaleY(0);
+            opacity: 0.35;
+          }
+          to {
+            transform: scaleY(1);
+            opacity: 1;
+          }
         }
       `}</style>
       <section className="space-y-8 md:space-y-10">
@@ -1291,7 +1528,7 @@ export function AdminDashboard() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <MetricCard
                     icon={Users}
-                    label="방문자"
+                    label="평균 방문자"
                     value={formatDashboardMetricValue("visitors", overviewSummaryApi.visitors.avgCurrent)}
                     hint={<span className={cx("text-xs font-semibold", overviewSummaryApi.visitors.avgDelta !== null && overviewSummaryApi.visitors.avgDelta > 0 ? "text-emerald-600 dark:text-emerald-400" : overviewSummaryApi.visitors.avgDelta !== null && overviewSummaryApi.visitors.avgDelta < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground")}>{formatDashboardDelta("visitors", overviewSummaryApi.visitors.avgDelta)}</span>}
                     active={overviewMetric === "visitors"}
@@ -1299,7 +1536,7 @@ export function AdminDashboard() {
                   />
                   <MetricCard
                     icon={MessageSquare}
-                    label="댓글"
+                    label="평균 댓글"
                     value={formatDashboardMetricValue("comments", overviewSummaryApi.comments.avgCurrent)}
                     hint={<span className={cx("text-xs font-semibold", overviewSummaryApi.comments.avgDelta !== null && overviewSummaryApi.comments.avgDelta > 0 ? "text-emerald-600 dark:text-emerald-400" : overviewSummaryApi.comments.avgDelta !== null && overviewSummaryApi.comments.avgDelta < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground")}>{formatDashboardDelta("comments", overviewSummaryApi.comments.avgDelta)}</span>}
                     active={overviewMetric === "comments"}
@@ -1307,7 +1544,7 @@ export function AdminDashboard() {
                   />
                   <MetricCard
                     icon={Heart}
-                    label="좋아요"
+                    label="평균 좋아요"
                     value={formatDashboardMetricValue("likes", overviewSummaryApi.likes.avgCurrent)}
                     hint={<span className={cx("text-xs font-semibold", overviewSummaryApi.likes.avgDelta !== null && overviewSummaryApi.likes.avgDelta > 0 ? "text-emerald-600 dark:text-emerald-400" : overviewSummaryApi.likes.avgDelta !== null && overviewSummaryApi.likes.avgDelta < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground")}>{formatDashboardDelta("likes", overviewSummaryApi.likes.avgDelta)}</span>}
                     active={overviewMetric === "likes"}
@@ -1329,6 +1566,10 @@ export function AdminDashboard() {
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Overview</p>
                       <h3 className="mt-2 text-xl font-semibold text-foreground">{activeOverviewMetric.label} 흐름</h3>
                       <p className="mt-2 text-sm text-muted-foreground">{analyticsRangeLabel}</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                        <span>{overviewTrendDescription}</span>
+                        {rangePreset === "month" ? <MonthAverageHelp /> : null}
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-muted-foreground">집계 기준</p>
@@ -1466,18 +1707,27 @@ export function AdminDashboard() {
 
             {analyticsView === "posts" ? (
               <Surface className="p-6 md:p-7">
-                <div className="mb-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Top Posts</p>
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Top Posts</p>
                   <h3 className="mt-2 text-xl font-semibold text-foreground">조회수 상위 게시글 TOP 10</h3>
+                  </div>
+                  {topPostsLoading ? <div className="text-xs text-muted-foreground">불러오는 중...</div> : null}
                 </div>
                 <div className="space-y-3">
-                  {currentBundle.topPosts.map((post, index) => (
-                    <div key={post.title} className="grid gap-4 rounded-2xl border border-border/60 bg-background/70 px-4 py-4 md:grid-cols-[56px_minmax(0,1fr)_120px_110px] md:items-center">
+                  {topPosts.map((post, index) => (
+                    <div key={post.id} className="grid gap-4 rounded-2xl border border-border/60 bg-background/70 px-4 py-4 md:grid-cols-[56px_minmax(0,1fr)_120px_110px] md:items-center">
                       <div className="text-sm font-semibold text-foreground">#{index + 1}</div>
                       <p className="text-sm font-semibold text-foreground">{post.title}</p>
                       <div className="text-sm text-muted-foreground md:text-right">{post.views.toLocaleString()}회</div>
                       <div className={cx("text-sm font-semibold md:text-right", post.trend === "up" ? "text-emerald-600 dark:text-emerald-400" : post.trend === "down" ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground")}>
-                        {post.trend === "up" ? `+${post.deltaPercent}%` : post.trend === "down" ? `-${Math.abs(post.deltaPercent)}%` : "0%"}
+                        {post.delta > 0 ? "+" : post.delta < 0 ? "-" : ""}
+                        {Math.abs(post.delta).toLocaleString()}회
+                        <span className="ml-1 text-xs">
+                          ({post.deltaPercent > 0 ? "+" : post.deltaPercent < 0 ? "-" : ""}
+                          {Math.abs(post.deltaPercent).toLocaleString()}%)
+                        </span>
+                        <span className="mt-1 block text-[11px] font-medium text-muted-foreground">전 날짜 대비</span>
                       </div>
                     </div>
                   ))}
@@ -1487,13 +1737,21 @@ export function AdminDashboard() {
 
             {analyticsView === "engagement" ? (
               <Surface className="p-6 md:p-7">
-                <div className="mb-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Engagement</p>
-                  <h3 className="mt-2 text-xl font-semibold text-foreground">댓글 · 좋아요 추이</h3>
+                <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">Engagement</p>
+                    <h3 className="mt-2 text-xl font-semibold text-foreground">댓글 · 좋아요 추이</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{analyticsRangeLabel}</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                      <span>{engagementTrendDescription}</span>
+                      {rangePreset === "month" ? <MonthAverageHelp /> : null}
+                    </div>
+                  </div>
+                  {engagementLoading ? <div className="text-xs text-muted-foreground">불러오는 중...</div> : null}
                 </div>
-                <div className="h-[360px] w-full">
+                <div className="engagement-bar-chart h-[360px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsChartData} margin={{ top: 10, right: 24, left: 10, bottom: 0 }}>
+                    <BarChart key={`engagement-${rangePreset}-${dateStart}-${dateEnd}`} data={engagementChartData} margin={{ top: 10, right: 24, left: 10, bottom: 0 }}>
                       <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
                       <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
                       <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12 }} width={56} />
