@@ -11,7 +11,7 @@ import {
   isAccessTokenExpired,
 } from './auth-client'
 
-export const API_BASE_URL = 'http://localhost:8080/api/v1'
+export const API_BASE_URL = 'http://api.lee-devlog.kro.kr/api/v1'
 
 
 const articleDetailInFlight = new Map<string, Promise<any>>()
