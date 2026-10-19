@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { ExternalLink, Github, ChevronRight, X, ArrowUpRight } from "lucide-react";
 
@@ -16,17 +16,17 @@ interface Project {
   period: string;
   role: string;
   responsibilities: string[];
-  challenges: string;
-  results: string;
+  challenges: string | string[];
+  results: string | ReactNode[];
+  performanceNote?: string;
 }
 
 const projects: Project[] = [
   {
     id: "1",
-    title: "개인 포트폴리오 & 기술 블로그 - DEV LEE",
-    description: "Spring Boot 기반의 고성능 API 서버",
-    longDescription:
-      "포트폴리오 및 개인 테크블로그입니다. 원활한 서비스 이용을 위해 Spring Boot 기반의 고성능 API 서버를 추구합니다. JPA 최적화, Docker 배포 등 최신 기술 스택을 활용하여 안정적이고 확장 가능한 서비스를 구축했습니다.",
+    title: "개인 기술 블로그·포트폴리오",
+    description: "개인 기술 블로그·포트폴리오 서비스",
+    longDescription: "",
     thumbnail: "https://lee-devlog-img.kro.kr/img/project/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202026-03-17%20173922.png",
     tags: ["Next.js", "Spring Boot", "JPA/Hibernate", "K6/Grafana", "Prometheus", "Docker", "CI/CD"],
     githubUrl: "https://github.com/DEV-Cheeze/portfolio_lee",
@@ -34,28 +34,26 @@ const projects: Project[] = [
     period: "2026.03 - now",
     role: "개발 인원: 1명, FullStack 개발 (백엔드 중심), 배포 및 운영",
     responsibilities: [
-      "Next.js를 활용한 프론트엔드 개발 및 UI/UX 개선 (AI 사용)",
-      "Spring Boot 기반 RESTful API 설계 및 구현",
-      "JPA/Hibernate를 활용한 데이터 모델링 및 쿼리 최적화 (N+1 문제 해결, 인덱스 튜닝, FULLTEXT 검색 구현)",
-      "Spring Actuator, Prometheus, K6를 활용한 부하 테스트 시나리오 작성 및 Grafana 대시보드 구축",
-      "Github Actions와 Docker Compose기반 배포 파이프라인 구축",
-      "AWS EC2에 Docker 컨테이너로 배포 및 운영, CodeDeploy를 활용한 무중단 배포 구현 (Blue-Green 배포 전략 적용)",
-      "CDN(CloudFront)을 활용한 S3 정적 자원 최적화 및 글로벌 배포 구현",
-      "좋아요 동시성 문제 해결을 위한 exclusive lock 도입",
-      "추후 QueryDSL 도입을 통한 안정적인 동적 쿼리 실행 계획",
-      "FULLTEXT 검색 트래픽이 증가될 경우 Elasticsearch 도입 예정",
-      "현재는 트래픽이 적어 단순 구조로 운영하지만, 향후 조회수/좋아요 집계는 캐시나 비동기 처리로 개선할 계획"
+      "게시글 작성·임시저장·발행, S3 이미지 업로드 및 CloudFront 제공 기능 개발",
+      "Spring Security·JWT 기반 인증과 Refresh Token Rotation 구현",
+      "방문자·좋아요·댓글 통계 집계 및 관리자 대시보드 개발",
+      "AWS·Docker 기반 배포와 Blue/Green 전환·롤백, 모니터링 환경을 1인으로 구축",
     ],
-    challenges:
-      "현재는 초기 버전으로 사용자 규모가 크지 않아 의미 있는 운영 지표는 많지 않지만, k6를 활용한 API 응답 시간 측정과 모니터링 지표 수집 환경을 구성해 향후 성능을 정량적으로 분석할 수 있도록 준비했습니다.\n"
-      + "초기에는 트래픽 급증 시나리오를 예상하여 JPA 쿼리문 최적화를 시도하였습니다.",
-    results:
-      "부하 테스트 300명 동시 접속 시 평균 응답 시간 150ms 미만 달성 (최대 300ms)",
+    challenges: [
+      "게시글보다 이미지가 먼저 업로드되는 흐름을 고려해 임시저장·발행 상태를 분리하고, 발행 시 본문과 S3 이미지를 연결했습니다.",
+      "토큰 재발급 시 기존 Refresh Token을 무효화하고, 만료시간에 맞춰 인증 정보의 저장·갱신·폐기 주기를 관리했습니다.",
+      "통계 집계를 이벤트와 비동기 리스너로 분리해 집계 지연·예외가 사용자 요청에 전파되지 않도록 구성했습니다.",
+    ],
+    results: [
+      "게시글·이미지·인증 정보의 생명주기를 고려한 개인 서비스 구현",
+      "신규 컨테이너 헬스체크 후 트래픽 전환 및 기존 컨테이너로 롤백할 수 있는 배포 경로 구축",
+      "Actuator·Prometheus·Grafana를 연동해 API 응답시간과 서비스 상태를 관측할 수 있는 운영 환경 구성",
+    ],
   },
   {
     id: "2",
-    title: "네덜란드식 경매 플랫폼 - Windfall",
-    description: "실시간 경매 시스템 및 결제 서비스",
+    title: "WindFall — 경매 기반 중고 거래 플랫폼",
+    description: "경매 기반 중고 거래 플랫폼",
     longDescription:
       "",
     thumbnail: "https://lee-devlog-img.kro.kr/img/project/e6d175f5-d03a-4c33-95ec-238197c262e7.png",
@@ -65,15 +63,35 @@ const projects: Project[] = [
     period: "2025.12 - 2026.01",
     role: "개발 인원: 2명, 백엔드 개발 (마이페이지), CI/CD 구축",
     responsibilities: [
-      "마이페이지 API 설계 및 구현 (주문 내역, 찜 목록, 리뷰 관리 등)",
-      "CI/CD 파이프라인 구축 (Github Actions, AWS CodeDeploy, Blue-Green 배포 전략 적용)",
-      "AWS EC2에 Docker Compose 컨테이너로 배포 및 운영",
-      "JPA Native Query를 활용한 복잡한 데이터 조회 최적화",
+      "마이페이지 API 설계 및 구현: 구매·판매 내역, 찜, 최근 본 경매, 알림",
+      "리뷰 작성 기능 구현: 구매확정 여부, 작성 권한, 중복 작성 검증",
+      "GitHub Actions·CodeDeploy·Docker Compose·Nginx 기반 Blue/Green 배포 파이프라인 구축",
+      "프로젝트 종료 후 SQL·인덱스 최적화, Redis 캐싱·장애 대응, 경매 갱신 스케줄러 개선을 개인적으로 진행",
     ],
-    challenges:
-      "JPA Native Query로 복잡한 데이터 조회 로직을 구현하는 과정에서 발생하는 N+1 문제와 조인으로 인한 성능 저하 문제를 해결하기 위해 쿼리 분산 처리와 인덱스 최적화 전략을 적용했습니다. 또한 배포 시 서비스 중단 없이 새로운 버전으로 전환하기 위해 Blue-Green 배포 전략을 도입하여 배포 실패 시 빠르게 롤백할 수 있도록 준비했습니다.",
-    results: 
-      "최대 7개의 조인 테이블 조회에서도 평균 응답 시간 200ms 미만 달성 (인덱스 미적용), Blue-Green 배포 도입으로 무중단 배포 구현 (배포 실패 시 롤백 시간 1분 이내)",
+    challenges: [
+      "상세 조회 부하에서 발생한 커넥션 풀 포화를 분석하고, 대표 이미지 조회 범위·JOIN 구조·인덱스를 개선했습니다. 반복 조회되는 판매자 정보에는 Redis 캐시를 적용했습니다.",
+      "Redis 장애 시 Timeout 대기가 누적되는 문제를 DB 대체 조회와 Circuit Breaker로 개선했습니다.",
+      "경매별 UPDATE·트랜잭션 커밋을 2개의 Bulk Update로 변경했습니다. 이후 발생한 비동기 작업 집중 제출 문제는 커밋 후 변경 목록을 하나의 작업으로 제출하도록 개선했습니다.",
+    ],
+    results: [
+      <>
+        판매자 상세 평균 응답시간 <strong>2,398.18 → 1.47ms</strong>, <strong>99.94% 단축</strong>
+      </>,
+      <>
+        경매 상세 평균 응답시간 <strong>2,359.87 → 9.39ms</strong>, <strong>99.60% 단축</strong>
+      </>,
+      <>
+        SQL·인덱스 개선 후 전체 HTTP 처리량 <strong>484.48 → 799.93req/s</strong>, <strong>65.11% 증가</strong>
+      </>,
+      <>
+        경매 2만 건 평균 DB 갱신시간 <strong>88.9790 → 0.1879초</strong>, <strong>99.79% 단축</strong> 및 기존 방식과 처리 결과 일치 검증
+      </>,
+      <>
+        Redis 중단을 포함한 실험에서 HTTP 실패율 <strong>13.69% → 0%</strong>, 개선 후 <strong>4회 모두 HTTP 실패·실행 누락 0건</strong>
+      </>,
+    ],
+    performanceNote:
+      "※ 성능 수치는 조건별 4회 측정 평균입니다. 상세 조회는 두 API 합계 목표 800req/s 조건이며, Redis 장애 실험은 정상 1분·중단 2분·복구 1분의 전체 구간을 측정했습니다.",
   },
 ];
 
@@ -179,9 +197,20 @@ function ProjectModal({
                 <span className="w-1 h-4 bg-primary rounded-full" />
                 {"해결한 문제"}
               </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {project.challenges}
-              </p>
+              {Array.isArray(project.challenges) ? (
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {project.challenges.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/40 mt-2 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {project.challenges}
+                </p>
+              )}
             </div>
 
             <div>
@@ -189,9 +218,25 @@ function ProjectModal({
                 <span className="w-1 h-4 bg-primary rounded-full" />
                 {"성과"}
               </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {project.results}
-              </p>
+              {Array.isArray(project.results) ? (
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {project.results.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/40 mt-2 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {project.results}
+                </p>
+              )}
+              {project.performanceNote && (
+                <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
+                  {project.performanceNote}
+                </p>
+              )}
             </div>
           </div>
 
