@@ -61,7 +61,7 @@ const projects: Project[] = [
     githubUrl: "https://github.com/prgrms-web-devcourse-final-project/WEB7_9_200OK_BE",
     liveUrl: "https://wind-fall.store/",
     period: "2025.12 - 2026.01",
-    role: "개발 인원: 2명, 백엔드 개발 (마이페이지), CI/CD 구축",
+    role: "개발 인원: 6명, 백엔드 개발 (마이페이지), CI/CD 구축, 성능 개선 및 장애 대응",
     responsibilities: [
       "마이페이지 API 설계 및 구현: 구매·판매 내역, 찜, 최근 본 경매, 알림",
       "리뷰 작성 기능 구현: 구매확정 여부, 작성 권한, 중복 작성 검증",
